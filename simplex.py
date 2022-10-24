@@ -1,21 +1,37 @@
 import numpy as np
 
-def print_matrix(matrix):
-    for i in np.shape(matrix)[0]:  # rows
-        for j in np.shape(matrix)[1]:
-            print(f'{matrix[i][j]} ')
-        print()
 
+restrictions, variables = [int(x) for x in input().split()]
 
-restrictions, variables = int(input()).split()
-
+"""
 restrictions_matrix = np.array([])
 current_line = np.array([])
 for k in range(restrictions):
-    for value in input().split():
+    for value in [int(x) for x in input().split()]:
         current_line.append(value)
-    restrictions_matrix.append(current_line, axis = 0)
+    restrictions_matrix.concat(current_line, axis = 0)
     current_line = np.array([])
+"""
+
+"""
+restrictions_matrix = np.array([])
+current_line = []
+for k in range(restrictions):
+    current_line.append([int(x) for x in input().split()])
+        #current_line = np.append(current_line, value)
+    restrictions_matrix = np.concatenate((restrictions_matrix, current_line))
+    current_line = np.array([])
+"""
+restrictions_matrix = []
+current_line = []
+for k in range(restrictions):
+    current_line.append([int(x) for x in input().split()])
+        #current_line = np.append(current_line, value)
+    restrictions_matrix.append(current_line)
+    current_line = []
+
+restrictions_matrix = np.array(restrictions_matrix).reshape(restrictions, variables + 1)
 
 
 
+print(restrictions_matrix)
