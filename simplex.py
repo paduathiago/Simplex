@@ -3,7 +3,7 @@ import numpy as np
 
 class Simplex:
     
-    def receive_input(self):
+    def process_input(self):
         restrictions, variables = [int(x) for x in input().split()]
 
         vector_c = []
@@ -47,5 +47,5 @@ class Simplex:
 
         
 simplex = Simplex()
-c, A = simplex.receive_input()
+c, A = simplex.process_input()
 simplex.FPI(c, A)
