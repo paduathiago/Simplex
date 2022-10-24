@@ -1,3 +1,4 @@
+from ast import For
 import numpy as np
 
 class Simplex:
@@ -6,7 +7,8 @@ class Simplex:
         restrictions, variables = [int(x) for x in input().split()]
 
         vector_c = []
-        vector_c.append([float(c) for c in input().split()])
+        for c in input().split():
+            vector_c.append(float(c))
 
         restrictions_matrix = []
         current_line = []
@@ -21,11 +23,11 @@ class Simplex:
         # Colar vector c na matriz A e adicionar campo correspondente ao cáculo do ótimo
         return vector_c, restrictions_matrix
     
-    def FPI(self, matrix):
+    def FPI(self, vector_c, matrix):
         # Adicionar uma matriz identidade cujas dimensões são iguais ao número de restrições(linhas) da matriz A
         vector_b = matrix[::, np.shape(matrix)[1]-1]
-        rows = np.shape(matrix)[0]
-        aux = np.identity(rows)
+        A_rows = np.shape(matrix)[0]
+        aux = np.identity(A_rows)
         for column in aux:
             matrix = np.insert(matrix, -1, column, axis = 1)
 
@@ -36,6 +38,14 @@ class Simplex:
         print('===============================')
         print (vector_b)
 
+        
+        print(vector_c)
+        for _ in range(np.shape(matrix)[1] - len(vector_c)):
+            vector_c.append(0.0)
+        print('********************************')
+        print(vector_c)
+
+        
 simplex = Simplex()
 c, A = simplex.receive_input()
-simplex.FPI(A)
+simplex.FPI(c, A)
