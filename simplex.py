@@ -1,4 +1,3 @@
-from ast import For
 import numpy as np
 
 class Simplex:
@@ -45,7 +44,10 @@ class Simplex:
         print('********************************')
         print(vector_c)
 
+    def solve_LP():
+        c, A = simplex.process_input()
+        FPI_A, FPI_c = simplex.FPI(c, A)
+
         
 simplex = Simplex()
-c, A = simplex.process_input()
-simplex.FPI(c, A)
+simplex.solve_LP
