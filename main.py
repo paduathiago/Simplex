@@ -69,21 +69,20 @@ class Simplex:
         # TODO: call print method
         
     def find_pivot(self):
-        elements_in_column_lte0 = 0
         pivot = -1
         for column_index, element in enumerate(self.tableau[0,:-1]):
             if element < 0:
                 for i in range(self.restrictions):
-                    if self.tableau[i, column_index] <= 0:
-                        elements_in_column_lte0 += 1
-                    else:
+                    if self.tableau[i, column_index] > 0:
                         if pivot < 0:
                             pivot = self.tableau[i, column_index]
                         else:
                             if self.tableau[i, self.variables + 1] / self.tableau[i, column_index] < pivot:
                                 pivot = self.tableau[i, column_index]
-        #if elements_in_column_lte0 == self.restrictions:
-            # PL ilimitada     
+                if pivot == -1:
+                    print('PL ILIMITADA')  
+                return pivot
+                 
 
 
     def is_simplex_finished(self):
