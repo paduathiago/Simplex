@@ -1,4 +1,5 @@
 import numpy as np
+from sqlalchemy import false
 
 class Simplex:
     
@@ -9,7 +10,9 @@ class Simplex:
         c, A = simplex.process_input()
         FPI_A, FPI_c = simplex.FPI(c, A)
         self.tableau = simplex.build_tableau(FPI_A, FPI_c)
-    
+        self.run_simplex()
+
+
     def process_input(self):
         restrictions, variables = [int(x) for x in input().split()]
 
@@ -57,7 +60,19 @@ class Simplex:
 
     def build_tableau(self, matrix_A, vector_c):
         tableau = np.insert(vector_c, 0, -1 * matrix_A, axis=0)
-        print(tableau)
+        print(tableau)  # REMOVER
+        return tableau
+    
+    def run_simplex(self):
+        while not self.is_simplex_finished():
+            break
+        
+    def is_simplex_finished(self):
+        # print(self.tableau[0,:-1])  # REVISAR : esse range depende da utilização ou não do VERO na resolução do problema
+        for element in self.tableau[0,:-1]:
+            if element < 0:
+                return False
+        return True
 
         
 simplex = Simplex()
