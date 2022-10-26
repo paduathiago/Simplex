@@ -43,11 +43,19 @@ class Simplex:
             vector_c.append(0.0)
         print('********************************')
         print(vector_c)
+        vector_c = np.array(vector_c)
 
-    def solve_LP():
+        return vector_c, matrix
+
+    def build_tableau(self, matrix_A, vector_c):
+        tableau = np.insert(vector_c, 0, matrix_A, axis=0)
+        print(tableau)
+
+    def solve_LP(self):
         c, A = simplex.process_input()
         FPI_A, FPI_c = simplex.FPI(c, A)
+        simplex.build_tableau(FPI_A, FPI_c)
 
         
 simplex = Simplex()
-simplex.solve_LP
+simplex.solve_LP()
