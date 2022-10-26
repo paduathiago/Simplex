@@ -1,10 +1,11 @@
 import numpy as np
-from sqlalchemy import false
 
 class Simplex:
     
     def __init__(self):
         self.tableau = []
+        self.restrictions = 0
+        self.variables = 0
 
     def solve_LP(self):
         c, A = simplex.process_input()
@@ -12,9 +13,8 @@ class Simplex:
         self.tableau = simplex.build_tableau(FPI_A, FPI_c)
         self.run_simplex()
 
-
     def process_input(self):
-        restrictions, variables = [int(x) for x in input().split()]
+        self.restrictions, self.variables = [int(x) for x in input().split()]
 
         vector_c = []
         for c in input().split():
@@ -22,12 +22,12 @@ class Simplex:
 
         restrictions_matrix = []
         current_line = []
-        for _ in range(restrictions):
+        for _ in range(self.restrictions):
             current_line.append([float(x) for x in input().split()])
             restrictions_matrix.append(current_line)
             current_line = []
 
-        restrictions_matrix = np.array(restrictions_matrix).reshape(restrictions, variables + 1)
+        restrictions_matrix = np.array(restrictions_matrix).reshape(self.restrictions, self.variables + 1)
         print(restrictions_matrix)
 
         # Colar vector c na matriz A e adicionar campo correspondente ao cáculo do ótimo
@@ -65,8 +65,15 @@ class Simplex:
     
     def run_simplex(self):
         while not self.is_simplex_finished():
-            break
+            self.find_pivot()
+        # TODO: call print method
         
+    def find_pivot(self):
+        for column_index, element in enumerate(self.tableau[0,:-1]):
+            if element < 0:
+                pivot = self.tableau[column_index, 0]
+
+
     def is_simplex_finished(self):
         # print(self.tableau[0,:-1])  # REVISAR : esse range depende da utilização ou não do VERO na resolução do problema
         for element in self.tableau[0,:-1]:
