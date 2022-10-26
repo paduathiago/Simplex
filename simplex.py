@@ -48,13 +48,14 @@ class Simplex:
         return vector_c, matrix
 
     def build_tableau(self, matrix_A, vector_c):
-        tableau = np.insert(vector_c, 0, matrix_A, axis=0)
+        tableau = np.insert(vector_c, 0, -1 * matrix_A, axis=0)
         print(tableau)
 
     def solve_LP(self):
         c, A = simplex.process_input()
         FPI_A, FPI_c = simplex.FPI(c, A)
-        simplex.build_tableau(FPI_A, FPI_c)
+        tableau = simplex.build_tableau(FPI_A, FPI_c)
+
 
         
 simplex = Simplex()
