@@ -64,33 +64,40 @@ class Simplex:
         return tableau
     
     def run_simplex(self):
-        while not self.is_simplex_finished():
-            self.find_pivot()
+        is_optimal = self.is_optimal()
+        while not self.is_optimal() == 'T':
+            self.find_pivot(is_optimal)
+
+            break
         # TODO: call print method
         
-    def find_pivot(self):
+    def find_pivot(self, column_with_pivot):
         pivot = -1
-        for column_index, element in enumerate(self.tableau[0,:-1]):
-            if element < 0:
-                for i in range(self.restrictions):
-                    if self.tableau[i, column_index] > 0:
-                        if pivot < 0:
-                            pivot = self.tableau[i, column_index]
-                        else:
-                            if self.tableau[i, self.variables + 1] / self.tableau[i, column_index] < pivot:
-                                pivot = self.tableau[i, column_index]
-                if pivot == -1:
-                    print('PL ILIMITADA')  
-                return pivot
+        for i in range(self.restrictions + 1):
+            if self.tableau[i, column_with_pivot] > 0:
+                if pivot < 0:
+                    pivot = self.tableau[i, column_with_pivot]
+                else:
+                    if self.tableau[i, self.variables + 1] / self.tableau[i, column_with_pivot] < pivot:
+                        pivot = self.tableau[i, column_with_pivot]
+        if pivot == -1:
+            print('PL ILIMITADA')  
+        print(pivot)
+        return pivot
                  
 
 
-    def is_simplex_finished(self):
+    def is_optimal(self):
+        """
+        Returns wether the simplex has reached optimality (result = 'T') or not.
+        In the second case, the value returned is the column index for the next pivot
+        """
+        
         # print(self.tableau[0,:-1])  # REVISAR : esse range depende da utilização ou não do VERO na resolução do problema
-        for element in self.tableau[0,:-1]:
+        for column_index, element in enumerate(self.tableau[0,:-1]):
             if element < 0:
-                return False
-        return True
+                return column_index
+        return 'T'
 
         
 simplex = Simplex()
