@@ -73,19 +73,20 @@ class Simplex:
         
     def find_pivot(self, column_with_pivot):
         pivot = -1
+        coordinates = []
         for i in range(self.restrictions + 1):
             if self.tableau[i, column_with_pivot] > 0:
                 if pivot < 0:
                     pivot = self.tableau[i, column_with_pivot]
+                    coordinates = [i, column_with_pivot]
                 else:
                     if self.tableau[i, self.variables + 1] / self.tableau[i, column_with_pivot] < pivot:
                         pivot = self.tableau[i, column_with_pivot]
+                        coordinates = [i, column_with_pivot]
         if pivot == -1:
             print('PL ILIMITADA')  
         print(pivot)
-        return pivot
-                 
-
+        return coordinates
 
     def is_optimal(self):
         """
