@@ -48,7 +48,6 @@ class Simplex:
         print('===============================')
         print (vector_b)
 
-        
         print(vector_c)
         for _ in range(np.shape(matrix)[1] - len(vector_c)):
             vector_c.append(0.0)
@@ -66,12 +65,17 @@ class Simplex:
     def run_simplex(self):
         is_optimal = self.is_optimal()
         while not self.is_optimal() == 'T':
-            self.find_pivot(is_optimal)
-
+            coordinates = self.find_pivot(is_optimal)
+            self.pivot_column(coordinates)
             break
         # TODO: call print method
         
     def find_pivot(self, column_with_pivot):
+        """
+        Returns list containing coordinates for the current pivot's position
+        First Element: row
+        Second Element: column
+        """
         pivot = -1
         coordinates = []
         for i in range(self.restrictions + 1):
@@ -87,6 +91,10 @@ class Simplex:
             print('PL ILIMITADA')  
         print(pivot)
         return coordinates
+
+    def pivot_column(self, coordinates):
+        self.tableau[coordinates[0]] /=  self.tableau[coordinates[0], coordinates[1]]
+        print(self.tableau)
 
     def is_optimal(self):
         """
