@@ -66,18 +66,20 @@ class Simplex:
         Second Element: column
         """
         pivot = -1
-        division = 0
+        pivot_division = 0
         coordinates = []
         for i in range(self.restrictions + 1):
             if self.tableau[i, column_with_pivot] > 0:
                 if pivot < 0:
                     pivot = self.tableau[i, column_with_pivot]
-                    division = self.tableau[i, self.variables + 1] / self.tableau[i, column_with_pivot]
+                    pivot_division = self.tableau[i, -1] / self.tableau[i, column_with_pivot]
                     coordinates = [i, column_with_pivot]
                 else:
-                    if self.tableau[i, self.variables + 1] / self.tableau[i, column_with_pivot] < division:
+                    current_division = self.tableau[i, -1] / self.tableau[i, column_with_pivot]
+                    if current_division < pivot_division:
                         pivot = self.tableau[i, column_with_pivot]
                         coordinates = [i, column_with_pivot]
+                        pivot_division = current_division
         
         if pivot == -1:
             print('PL ILIMITADA')  
