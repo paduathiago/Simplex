@@ -35,26 +35,15 @@ class Simplex:
     
     def FPI(self, vector_c, matrix):
         # Adicionar uma matriz identidade cujas dimensões são iguais ao número de restrições(linhas) da matriz A
-        vector_b = matrix[::, np.shape(matrix)[1]-1]
         A_rows = np.shape(matrix)[0]
         aux = np.identity(A_rows)
         for column in aux:
             matrix = np.insert(matrix, -1, column, axis = 1)
 
-        print('===============================')
-        print(aux)
-        print('===============================')
-        print(matrix)
-        print('===============================')
-        print (vector_b)
-
-        print(vector_c)
         for _ in range(np.shape(matrix)[1] - len(vector_c)):
             vector_c.append(0.0)
-        print('********************************')
-        print(vector_c)
-        vector_c = np.array(vector_c)
 
+        vector_c = np.array(vector_c)
         return vector_c, matrix
 
     def build_tableau(self, matrix_A, vector_c):
@@ -64,10 +53,10 @@ class Simplex:
     
     def run_simplex(self):
         is_optimal = self.is_optimal()
-        while not self.is_optimal() == 'T':
+        while not is_optimal == 'T':
             coordinates = self.find_pivot(is_optimal)
             self.pivot_column(coordinates)
-            break
+            is_optimal = self.is_optimal()
         # TODO: call print method
         
     def find_pivot(self, column_with_pivot):
@@ -77,16 +66,19 @@ class Simplex:
         Second Element: column
         """
         pivot = -1
+        division = 0
         coordinates = []
         for i in range(self.restrictions + 1):
             if self.tableau[i, column_with_pivot] > 0:
                 if pivot < 0:
                     pivot = self.tableau[i, column_with_pivot]
+                    division = self.tableau[i, self.variables + 1] / self.tableau[i, column_with_pivot]
                     coordinates = [i, column_with_pivot]
                 else:
-                    if self.tableau[i, self.variables + 1] / self.tableau[i, column_with_pivot] < pivot:
+                    if self.tableau[i, self.variables + 1] / self.tableau[i, column_with_pivot] < division:
                         pivot = self.tableau[i, column_with_pivot]
                         coordinates = [i, column_with_pivot]
+        
         if pivot == -1:
             print('PL ILIMITADA')  
         print(pivot)
@@ -94,6 +86,9 @@ class Simplex:
 
     def pivot_column(self, coordinates):
         self.tableau[coordinates[0]] /=  self.tableau[coordinates[0], coordinates[1]]
+        for i in range(self.restrictions + 1):
+            if i != coordinates[0]:
+                self.tableau[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.tableau[coordinates[0]])
         print(self.tableau)
 
     def is_optimal(self):
