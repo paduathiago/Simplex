@@ -15,10 +15,21 @@ class Simplex:
         self.print_result()
 
     def print_result(self, solution_type='optimal'):    
+        def find_possible_solution(self):
+            possible_solution = np.zeros(self.variables)
+            for i in range(self.variables):
+                if self.tableau[0, i] == 0:
+                    for j in range(self.restrictions + 1):
+                        if self.tableau[j, i] == 1:
+                            possible_solution[j - 1] = self.tableau[j, -1]
+            return possible_solution
+
         if solution_type == 'optimal':
             print('otima')
             print(self.tableau[0, -1])
-
+            print(find_possible_solution(self))
+            # TODO: print certificate
+            
 
     def process_input(self):
         self.restrictions, self.variables = [int(x) for x in input().split()]
