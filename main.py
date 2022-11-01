@@ -12,6 +12,13 @@ class Simplex:
         FPI_A, FPI_c = simplex.FPI(c, A)
         self.tableau = simplex.build_tableau(FPI_A, FPI_c)
         self.run_simplex()
+        self.print_result()
+
+    def print_result(self, solution_type='optimal'):    
+        if solution_type == 'optimal':
+            print('otima')
+            print(self.tableau[0, -1])
+
 
     def process_input(self):
         self.restrictions, self.variables = [int(x) for x in input().split()]
