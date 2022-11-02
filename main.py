@@ -17,11 +17,11 @@ class Simplex:
     def print_result(self, solution_type='optimal'):    
         def find_possible_solution(self):
             possible_solution = np.zeros(self.variables)
-            for i in range(self.variables):
-                if self.tableau[0, i] == 0:
-                    for j in range(self.restrictions + 1):
-                        if self.tableau[j, i] == 1:
-                            possible_solution[j - 1] = self.tableau[j, -1]
+            for j in range(self.variables):
+                if self.tableau[0, j] == 0:
+                    for i in range(1, self.restrictions + 1):  # REVISAR QUESTÃO DE ONDE i começa
+                        if self.tableau[i, j] == 1:
+                            possible_solution[i - 1] = self.tableau[i, -1]
             return possible_solution
 
         if solution_type == 'optimal':
@@ -29,6 +29,10 @@ class Simplex:
             print(self.tableau[0, -1])
             print(find_possible_solution(self))
             # TODO: print certificate
+        elif solution_type == 'unbounded':
+            print('ilimitada')
+        elif solution_type == "not feasible":
+            print('inviavel')
             
 
     def process_input(self):
@@ -46,11 +50,25 @@ class Simplex:
             current_line = []
 
         restrictions_matrix = np.array(restrictions_matrix).reshape(self.restrictions, self.variables + 1)
-        print(restrictions_matrix)
+        print(restrictions_matrix)  # REMOVER
 
-        # Colar vector c na matriz A e adicionar campo correspondente ao cáculo do ótimo
         return vector_c, restrictions_matrix
     
+    def is_feasible(self):
+        is_feasible = False
+        for i in range(1, self.restrictions + 1):
+            is_feasible = False
+            if self.tableau[i, -1] < 0:
+                for j in range(len(self.tableau[i]) - 1):
+                    if self.tableau[i, j] < 0:
+                        is_feasible = True
+                        break
+
+                if not is_feasible:
+                    return False
+        
+        return True
+
     def FPI(self, vector_c, matrix):
         # Adicionar uma matriz identidade cujas dimensões são iguais ao número de restrições(linhas) da matriz A
         A_rows = np.shape(matrix)[0]
@@ -72,6 +90,9 @@ class Simplex:
     def run_simplex(self):
         is_optimal = self.is_optimal()
         while not is_optimal == 'T':
+            if not self.is_feasible():
+                print('inviavel')
+                break
             coordinates = self.find_pivot(is_optimal)
             self.pivot_column(coordinates)
             is_optimal = self.is_optimal()
@@ -101,7 +122,7 @@ class Simplex:
         
         if pivot == -1:
             print('PL ILIMITADA')  
-        print(pivot)
+        print(pivot)  # REMOVER
         return coordinates
 
     def pivot_column(self, coordinates):
