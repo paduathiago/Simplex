@@ -11,27 +11,27 @@ class Simplex:
         c, A = simplex.process_input()
         FPI_A, FPI_c = simplex.FPI(c, A)
         self.tableau = simplex.build_tableau(FPI_A, FPI_c)
-        self.run_simplex()
-        self.print_result()
+        simplex_result = self.run_simplex()
+        self.print_result(simplex_result)
 
-    def print_result(self, solution_type='optimal'):    
-        def find_possible_solution(self):
-            possible_solution = np.zeros(self.variables)
-            for j in range(self.variables):
-                if self.tableau[0, j] == 0:
-                    for i in range(1, self.restrictions + 1):  # REVISAR QUESTÃO DE ONDE i começa
-                        if self.tableau[i, j] == 1:
-                            possible_solution[i - 1] = self.tableau[i, -1]
-            return possible_solution
-
-        if solution_type == 'optimal':
+    def find_possible_solution(self):
+        possible_solution = np.zeros(self.variables)
+        for j in range(self.variables):
+            if self.tableau[0, j] == 0:
+                for i in range(1, self.restrictions + 1):  # REVISAR QUESTÃO DE ONDE i começa
+                    if self.tableau[i, j] == 1:
+                        possible_solution[i - 1] = self.tableau[i, -1]
+        return possible_solution
+    
+    def print_result(self, LP_type):    
+        if LP_type == 'optimal':
             print('otima')
             print(self.tableau[0, -1])
-            print(find_possible_solution(self))
+            print(self.find_possible_solution())
             # TODO: print certificate
-        elif solution_type == 'unbounded':
+        elif LP_type == 'unbounded':
             print('ilimitada')
-        elif solution_type == "not feasible":
+        elif LP_type == "not feasible":
             print('inviavel')
             
 
@@ -91,12 +91,16 @@ class Simplex:
         is_optimal = self.is_optimal()
         while not is_optimal == 'T':
             if not self.is_feasible():
-                print('inviavel')
-                break
+                return 'not feasible'
+
             coordinates = self.find_pivot(is_optimal)
+            if not coordinates:
+                return 'unbounded'
+
             self.pivot_column(coordinates)
             is_optimal = self.is_optimal()
-        # TODO: call print method
+        
+        return 'optimal'
         
     def find_pivot(self, column_with_pivot):
         """
@@ -120,8 +124,8 @@ class Simplex:
                         coordinates = [i, column_with_pivot]
                         pivot_division = current_division
         
-        if pivot == -1:
-            print('PL ILIMITADA')  
+        if pivot == -1:  # unbounded LP problem
+            return False  
         print(pivot)  # REMOVER
         return coordinates
 
