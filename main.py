@@ -20,7 +20,7 @@ class Simplex:
             if self.tableau[0, j] == 0:
                 for i in range(1, self.restrictions + 1):  # REVISAR QUESTÃO DE ONDE i começa
                     if self.tableau[i, j] == 1:
-                        possible_solution[i - 1] = self.tableau[i, -1]
+                        possible_solution[j] = self.tableau[i, -1]
         return possible_solution
     
     def print_result(self, LP_type):    
