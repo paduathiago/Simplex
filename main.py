@@ -18,7 +18,7 @@ class Simplex:
         possible_solution = np.zeros(self.variables)
         for j in range(self.variables):
             if self.tableau[0, j] == 0:
-                for i in range(1, self.restrictions + 1):  # REVISAR QUESTÃO DE ONDE i começa
+                for i in range(1, self.restrictions + 1):
                     if self.tableau[i, j] == 1:
                         possible_solution[j] = self.tableau[i, -1]
         return possible_solution
@@ -31,6 +31,7 @@ class Simplex:
             # TODO: print certificate
         elif LP_type == 'unbounded':
             print('ilimitada')
+            print(self.find_possible_solution())
         elif LP_type == "not feasible":
             print('inviavel')
             
@@ -125,7 +126,20 @@ class Simplex:
                         pivot_division = current_division
         
         if pivot == -1:  # unbounded LP problem
-            return False  
+            if column_with_pivot >= self.variables:
+                return False
+            else:
+                found_new_column = False
+                new_pivot_column = 0
+                for k in range(column_with_pivot + 1, self.variables +1):
+                    if self.tableau[0, k] < 0:
+                        new_pivot_column = k
+                        found_new_column = True
+                        break
+                if found_new_column:
+                    return self.find_pivot(new_pivot_column)
+                return False 
+        
         print(pivot)  # REMOVER
         return coordinates
 
