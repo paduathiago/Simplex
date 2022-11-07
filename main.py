@@ -26,12 +26,16 @@ class Simplex:
     def print_result(self, LP_type):    
         if LP_type == 'optimal':
             print('otima')
-            print(self.tableau[0, -1])
-            print(self.find_possible_solution())
+            print('{:.7f}'.format(self.tableau[0, -1]))
+            for item in self.find_possible_solution():
+                print('{:.7f}'.format(item), end=" ")
+            print()
             # TODO: print certificate
         elif LP_type == 'unbounded':
             print('ilimitada')
-            print(self.find_possible_solution())
+            for item in self.find_possible_solution():
+                print('{:.7f}'.format(item), end=" ")
+            print()
         elif LP_type == "not feasible":
             print('inviavel')
             
