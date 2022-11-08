@@ -11,6 +11,8 @@ class Simplex:
         c, A = simplex.process_input()
         FPI_A, FPI_c = simplex.FPI(c, A)
         self.tableau = simplex.build_tableau(FPI_A, FPI_c)
+        if self.is_b_negative():
+            self.run_two_phase_simplex()
         simplex_result = self.run_simplex()
         self.print_result(simplex_result)
 
@@ -92,6 +94,14 @@ class Simplex:
         print(tableau)  # REMOVER
         return tableau
     
+    def build_auxiliary_LP(self):
+        auxiliary_tableau = self.tableau
+        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
+        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
+        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
+        new_matrix = np.insert(identity, 0, negative_entries, axis=0)
+        self.tableau = np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)  # Transformar tableau em classe
+    
     def run_simplex(self):
         is_optimal = self.is_optimal()
         while not is_optimal == 'T':
@@ -106,6 +116,14 @@ class Simplex:
             is_optimal = self.is_optimal()
         
         return 'optimal'
+
+    def run_two_phase_simplex(self):
+        for i in range(1, self.restrictions + 1):
+            if self.tableau[i, -1] < 0:
+                self.tableau[i] = np.negative(self.tableau[i])
+        self.build_auxiliary_LP()
+        print(self.tableau)
+        self.run_simplex()
 
     def is_b_negative(self):
         if np.all(self.tableau[:, -1] >= 0):
