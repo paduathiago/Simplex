@@ -26,15 +26,15 @@ class Simplex:
     def print_result(self, LP_type):    
         if LP_type == 'optimal':
             print('otima')
-            print('{:.7f}'.format(self.tableau[0, -1]))
+            print(f'{self.tableau[0, -1]:.7f}')
             for item in self.find_possible_solution():
-                print('{:.7f}'.format(item), end=" ")
+                print(f'{item:.7f}', end=" ")
             print()
             # TODO: print certificate
         elif LP_type == 'unbounded':
             print('ilimitada')
             for item in self.find_possible_solution():
-                print('{:.7f}'.format(item), end=" ")
+                print(f'{item:.7f}', end=" ")
             print()
         elif LP_type == "not feasible":
             print('inviavel')
@@ -106,7 +106,12 @@ class Simplex:
             is_optimal = self.is_optimal()
         
         return 'optimal'
-        
+
+    def is_b_negative(self):
+        if np.all(self.tableau[:, -1] >= 0):
+            return False
+        return True
+
     def find_pivot(self, column_with_pivot):
         """
         Returns list containing coordinates for the current pivot's position
@@ -130,6 +135,20 @@ class Simplex:
                         pivot_division = current_division
         
         if pivot == -1:  # unbounded LP problem
+            if not self.is_b_negative():
+                return False
+            
+            found_new_column = False
+            new_pivot_column = 0
+            for k in range(column_with_pivot + 1, len(self.tableau[0])):
+                if self.tableau[0, k] < 0:
+                    new_pivot_column = k
+                    found_new_column = True
+                    break
+            if found_new_column:
+                return self.find_pivot(new_pivot_column)
+            
+            """
             if column_with_pivot >= self.variables:
                 return False
             else:
@@ -143,7 +162,8 @@ class Simplex:
                 if found_new_column:
                     return self.find_pivot(new_pivot_column)
                 return False 
-        
+            """
+            
         print(pivot)  # REMOVER
         return coordinates
 
