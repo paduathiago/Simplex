@@ -90,6 +90,14 @@ class Tableau:
             return False
         return True
 
+    def build_auxiliary_LP(self, tableau):
+        auxiliary_tableau = tableau
+        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
+        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
+        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
+        new_matrix = np.insert(identity, 0, negative_entries, axis=0)
+        return np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)
+
 class Simplex:
     
     def __init__(self):
@@ -103,7 +111,7 @@ class Simplex:
         self.tableau = self.tableau.build_tableau(FPI_A, FPI_c)
         if self.tableau.is_b_negative():
             self.run_two_phase_simplex(self.tableau.tableau)
-        simplex_result = self.run_simplex()
+        simplex_result = self.run_simplex(self.tableau.tableau)
         self.print_result(simplex_result)
 
     def find_possible_solution(self):
@@ -154,9 +162,9 @@ class Simplex:
         is_feasible = False
         for i in range(1, self.restrictions + 1):
             is_feasible = False
-            if self.tableau.tableau[i, -1] < 0:
-                for j in range(len(self.tableau.tableau[i]) - 1):
-                    if self.tableau.tableau[i, j] < 0:
+            if tableau[i, -1] < 0:
+                for j in range(len(tableau[i]) - 1):
+                    if tableau[i, j] < 0:
                         is_feasible = True
                         break
 
@@ -165,16 +173,8 @@ class Simplex:
         
         return True
     
-    def build_auxiliary_LP(self, tableau):
-        auxiliary_tableau = tableau
-        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
-        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
-        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
-        new_matrix = np.insert(identity, 0, negative_entries, axis=0)
-        tableau = np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)  # Transformar tableau em classe
-    
-    def run_simplex(self):
-        is_PL_optimal = self.is_optimal(self.tableau.tableau)
+    def run_simplex(self, tableau):
+        is_PL_optimal = self.is_optimal(tableau)
         while not is_PL_optimal == 'T':
             if not self.is_feasible():
                 return 'not feasible'
@@ -192,9 +192,10 @@ class Simplex:
         for i in range(1, self.restrictions + 1):
             if tableau[i, -1] < 0:
                 tableau[i] = np.negative(tableau[i])
-        self.build_auxiliary_LP(self.tableau.tableau)
-        print(self.tableau)
-        self.run_simplex()
+
+        auxiliary_LP = Tableau()
+        auxiliary_LP = auxiliary_LP.build_auxiliary_LP(self.tableau.tableau)
+        self.run_simplex(auxiliary_LP)
 
     def is_optimal(self, tableau):
         """
