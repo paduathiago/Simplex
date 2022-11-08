@@ -1,80 +1,8 @@
 import numpy as np
 
-class Simplex:
-    
+class Tableau:
     def __init__(self):
         self.tableau = []
-        self.restrictions = 0
-        self.variables = 0
-
-    def solve_LP(self):
-        c, A = simplex.process_input()
-        FPI_A, FPI_c = simplex.FPI(c, A)
-        self.tableau = simplex.build_tableau(FPI_A, FPI_c)
-        if self.is_b_negative():
-            self.run_two_phase_simplex()
-        simplex_result = self.run_simplex()
-        self.print_result(simplex_result)
-
-    def find_possible_solution(self):
-        possible_solution = np.zeros(self.variables)
-        for j in range(self.variables):
-            if self.tableau[0, j] == 0:
-                for i in range(1, self.restrictions + 1):
-                    if self.tableau[i, j] == 1:
-                        possible_solution[j] = self.tableau[i, -1]
-        return possible_solution
-    
-    def print_result(self, LP_type):    
-        if LP_type == 'optimal':
-            print('otima')
-            print(f'{self.tableau[0, -1]:.7f}')
-            for item in self.find_possible_solution():
-                print(f'{item:.7f}', end=" ")
-            print()
-            # TODO: print certificate
-        elif LP_type == 'unbounded':
-            print('ilimitada')
-            for item in self.find_possible_solution():
-                print(f'{item:.7f}', end=" ")
-            print()
-        elif LP_type == "not feasible":
-            print('inviavel')
-            
-
-    def process_input(self):
-        self.restrictions, self.variables = [int(x) for x in input().split()]
-
-        vector_c = []
-        for c in input().split():
-            vector_c.append(float(c))
-
-        restrictions_matrix = []
-        current_line = []
-        for _ in range(self.restrictions):
-            current_line.append([float(x) for x in input().split()])
-            restrictions_matrix.append(current_line)
-            current_line = []
-
-        restrictions_matrix = np.array(restrictions_matrix).reshape(self.restrictions, self.variables + 1)
-        print(restrictions_matrix)  # REMOVER
-
-        return vector_c, restrictions_matrix
-    
-    def is_feasible(self):
-        is_feasible = False
-        for i in range(1, self.restrictions + 1):
-            is_feasible = False
-            if self.tableau[i, -1] < 0:
-                for j in range(len(self.tableau[i]) - 1):
-                    if self.tableau[i, j] < 0:
-                        is_feasible = True
-                        break
-
-                if not is_feasible:
-                    return False
-        
-        return True
 
     def FPI(self, vector_c, matrix):
         # Adicionar uma matriz identidade cujas dimensões são iguais ao número de restrições(linhas) da matriz A
@@ -92,43 +20,8 @@ class Simplex:
     def build_tableau(self, matrix_A, vector_c):
         tableau = np.insert(vector_c, 0, -1 * matrix_A, axis=0)
         print(tableau)  # REMOVER
-        return tableau
-    
-    def build_auxiliary_LP(self):
-        auxiliary_tableau = self.tableau
-        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
-        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
-        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
-        new_matrix = np.insert(identity, 0, negative_entries, axis=0)
-        self.tableau = np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)  # Transformar tableau em classe
-    
-    def run_simplex(self):
-        is_optimal = self.is_optimal()
-        while not is_optimal == 'T':
-            if not self.is_feasible():
-                return 'not feasible'
-
-            coordinates = self.find_pivot(is_optimal)
-            if not coordinates:
-                return 'unbounded'
-
-            self.pivot_column(coordinates)
-            is_optimal = self.is_optimal()
-        
-        return 'optimal'
-
-    def run_two_phase_simplex(self):
-        for i in range(1, self.restrictions + 1):
-            if self.tableau[i, -1] < 0:
-                self.tableau[i] = np.negative(self.tableau[i])
-        self.build_auxiliary_LP()
-        print(self.tableau)
-        self.run_simplex()
-
-    def is_b_negative(self):
-        if np.all(self.tableau[:, -1] >= 0):
-            return False
-        return True
+        self.tableau = tableau
+        return self
 
     def find_pivot(self, column_with_pivot):
         """
@@ -184,7 +77,7 @@ class Simplex:
             
         print(pivot)  # REMOVER
         return coordinates
-
+    
     def pivot_column(self, coordinates):
         self.tableau[coordinates[0]] /=  self.tableau[coordinates[0], coordinates[1]]
         for i in range(self.restrictions + 1):
@@ -192,14 +85,125 @@ class Simplex:
                 self.tableau[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.tableau[coordinates[0]])
         print(self.tableau)
 
-    def is_optimal(self):
+    def is_b_negative(self):
+        if np.all(self.tableau[:, -1] >= 0):
+            return False
+        return True
+
+class Simplex:
+    
+    def __init__(self):
+        self.tableau = Tableau()
+        self.restrictions = 0
+        self.variables = 0
+
+    def solve_LP(self):
+        c, A = self.process_input()
+        FPI_A, FPI_c = self.tableau.FPI(c, A)
+        self.tableau = self.tableau.build_tableau(FPI_A, FPI_c)
+        if self.tableau.is_b_negative():
+            self.run_two_phase_simplex(self.tableau.tableau)
+        simplex_result = self.run_simplex()
+        self.print_result(simplex_result)
+
+    def find_possible_solution(self):
+        possible_solution = np.zeros(self.variables)
+        for j in range(self.variables):
+            if self.tableau.tableau[0, j] == 0:
+                for i in range(1, self.restrictions + 1):
+                    if self.tableau.tableau[i, j] == 1:
+                        possible_solution[j] = self.tableau.tableau[i, -1]
+        return possible_solution
+    
+    def print_result(self, LP_type):    
+        if LP_type == 'optimal':
+            print('otima')
+            print(f'{self.tableau.tableau[0, -1]:.7f}')
+            for item in self.find_possible_solution():
+                print(f'{item:.7f}', end=" ")
+            print()
+            # TODO: print certificate
+        elif LP_type == 'unbounded':
+            print('ilimitada')
+            for item in self.find_possible_solution():
+                print(f'{item:.7f}', end=" ")
+            print()
+        elif LP_type == "not feasible":
+            print('inviavel')
+            
+    def process_input(self):
+        self.restrictions, self.variables = [int(x) for x in input().split()]
+
+        vector_c = []
+        for c in input().split():
+            vector_c.append(float(c))
+
+        restrictions_matrix = []
+        current_line = []
+        for _ in range(self.restrictions):
+            current_line.append([float(x) for x in input().split()])
+            restrictions_matrix.append(current_line)
+            current_line = []
+
+        restrictions_matrix = np.array(restrictions_matrix).reshape(self.restrictions, self.variables + 1)
+        print(restrictions_matrix)  # REMOVER
+
+        return vector_c, restrictions_matrix
+    
+    def is_feasible(self, tableau):
+        is_feasible = False
+        for i in range(1, self.restrictions + 1):
+            is_feasible = False
+            if self.tableau.tableau[i, -1] < 0:
+                for j in range(len(self.tableau.tableau[i]) - 1):
+                    if self.tableau.tableau[i, j] < 0:
+                        is_feasible = True
+                        break
+
+                if not is_feasible:
+                    return False
+        
+        return True
+    
+    def build_auxiliary_LP(self, tableau):
+        auxiliary_tableau = tableau
+        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
+        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
+        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
+        new_matrix = np.insert(identity, 0, negative_entries, axis=0)
+        tableau = np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)  # Transformar tableau em classe
+    
+    def run_simplex(self):
+        is_PL_optimal = self.is_optimal(self.tableau.tableau)
+        while not is_PL_optimal == 'T':
+            if not self.is_feasible():
+                return 'not feasible'
+
+            coordinates = self.find_pivot(is_PL_optimal)
+            if not coordinates:
+                return 'unbounded'
+
+            self.pivot_column(coordinates)
+            is_PL_optimal = self.is_optimal()
+        
+        return 'optimal'
+
+    def run_two_phase_simplex(self, tableau):
+        for i in range(1, self.restrictions + 1):
+            if tableau[i, -1] < 0:
+                tableau[i] = np.negative(tableau[i])
+        self.build_auxiliary_LP(self.tableau.tableau)
+        print(self.tableau)
+        self.run_simplex()
+
+    def is_optimal(self, tableau):
         """
         Returns wether the simplex has reached optimality (result = 'T') or not.
         In the second case, the value returned is the column index for the next pivot
         """
         
         # print(self.tableau[0,:-1])  # REVISAR : esse range depende da utilização ou não do VERO na resolução do problema
-        for column_index, element in enumerate(self.tableau[0,:-1]):
+        for column_index, element in enumerate(tableau[0, :-1]):
             if element < 0:
                 return column_index
         return 'T'
