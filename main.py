@@ -1,4 +1,6 @@
 import numpy as np
+from copy import deepcopy
+
 
 class Tableau:
     def __init__(self):
@@ -21,6 +23,15 @@ class Tableau:
         tableau = np.insert(vector_c, 0, -1 * matrix_A, axis=0)
         print(tableau)  # REMOVER
         self.tableau = tableau
+        return self
+
+    def build_auxiliary_LP(self, tableau):
+        auxiliary_tableau = tableau
+        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
+        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
+        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
+        new_matrix = np.insert(identity, 0, negative_entries, axis=0)
+        self.tableau = np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)
         return self
 
     def find_pivot(self, column_with_pivot):
@@ -85,18 +96,15 @@ class Tableau:
                 self.tableau[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.tableau[coordinates[0]])
         print(self.tableau)
 
+    def canonize_auxiliary_LP(self):
+        for row in range(1, np.shape(self.tableau)[0]):
+            self.tableau[0] -= self.tableau[row]
+        return self.tableau
+
     def is_b_negative(self):
         if np.all(self.tableau[:, -1] >= 0):
             return False
         return True
-
-    def build_auxiliary_LP(self, tableau):
-        auxiliary_tableau = tableau
-        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
-        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
-        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
-        new_matrix = np.insert(identity, 0, negative_entries, axis=0)
-        return np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)
 
 class Simplex:
     
@@ -110,24 +118,26 @@ class Simplex:
         FPI_A, FPI_c = self.tableau.FPI(c, A)
         self.tableau = self.tableau.build_tableau(FPI_A, FPI_c)
         if self.tableau.is_b_negative():
-            self.run_two_phase_simplex(self.tableau.tableau)
-        simplex_result = self.run_simplex(self.tableau.tableau)
-        self.print_result(simplex_result)
+            simplex_result = self.run_two_phase_simplex()
+            self.print_result(self.tableau.tableau, simplex_result)
+        else:
+            simplex_result = self.run_simplex(self.tableau.tableau)
+            self.print_result(self.tableau.tableau, simplex_result)
 
-    def find_possible_solution(self):
+    def find_possible_solution(self, tableau):
         possible_solution = np.zeros(self.variables)
         for j in range(self.variables):
-            if self.tableau.tableau[0, j] == 0:
+            if tableau[0, j] == 0:
                 for i in range(1, self.restrictions + 1):
-                    if self.tableau.tableau[i, j] == 1:
-                        possible_solution[j] = self.tableau.tableau[i, -1]
+                    if tableau[i, j] == 1:
+                        possible_solution[j] = tableau[i, -1]
         return possible_solution
     
-    def print_result(self, LP_type):    
+    def print_result(self, tableau, LP_type):    
         if LP_type == 'optimal':
             print('otima')
-            print(f'{self.tableau.tableau[0, -1]:.7f}')
-            for item in self.find_possible_solution():
+            print(f'{tableau[0, -1]:.7f}')
+            for item in self.find_possible_solution(tableau):
                 print(f'{item:.7f}', end=" ")
             print()
             # TODO: print certificate
@@ -173,29 +183,45 @@ class Simplex:
         
         return True
     
-    def run_simplex(self, tableau):
+    def run_simplex(self, tableau, is_auxiliary_LP=False):
+        if not is_auxiliary_LP:
+            is_PL_optimal = self.is_optimal(tableau)
+            while not is_PL_optimal == 'T':
+                if not self.is_feasible(tableau):
+                    return 'not feasible'
+
+                coordinates = self.find_pivot(is_PL_optimal)
+                if not coordinates:
+                    return 'unbounded'
+
+                self.pivot_column(coordinates)
+                is_PL_optimal = self.is_optimal(tableau)
+            return 'optimal'
+        
         is_PL_optimal = self.is_optimal(tableau)
         while not is_PL_optimal == 'T':
-            if not self.is_feasible():
-                return 'not feasible'
-
-            coordinates = self.find_pivot(is_PL_optimal)
-            if not coordinates:
-                return 'unbounded'
-
             self.pivot_column(coordinates)
-            is_PL_optimal = self.is_optimal()
-        
-        return 'optimal'
+            is_PL_optimal = self.is_optimal(tableau)
+        return tableau[0, -1]
 
-    def run_two_phase_simplex(self, tableau):
+    def run_two_phase_simplex(self):
+        """
+        2-Phase Simplex method used when b vector has at least one negative entry
+
+        Returns True if the original LP is feasible; False otherwise
+        """
+        auxiliary_LP = deepcopy(self.tableau)
         for i in range(1, self.restrictions + 1):
-            if tableau[i, -1] < 0:
-                tableau[i] = np.negative(tableau[i])
+            if auxiliary_LP.tableau[i, -1] < 0:
+                auxiliary_LP.tableau[i] = np.negative(auxiliary_LP.tableau[i])
 
-        auxiliary_LP = Tableau()
-        auxiliary_LP = auxiliary_LP.build_auxiliary_LP(self.tableau.tableau)
-        self.run_simplex(auxiliary_LP)
+        auxiliary_LP = auxiliary_LP.build_auxiliary_LP(auxiliary_LP.tableau)
+        auxiliary_LP.tableau = auxiliary_LP.canonize_auxiliary_LP()
+        
+        optimal_value = self.run_simplex(auxiliary_LP.tableau, is_auxiliary_LP=True)
+        if optimal_value < 0:
+            return "not feasible"
+        
 
     def is_optimal(self, tableau):
         """
