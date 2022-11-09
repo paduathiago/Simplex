@@ -40,7 +40,7 @@ class Tableau:
 
     def find_pivot(self, column_with_pivot):
         """
-        Returns list containing coordinates for the current pivot's position
+        Returns list containing coordinates for the current pivot's position; False if unbounded LP problem
         First Element: row
         Second Element: column
         """
@@ -61,34 +61,7 @@ class Tableau:
                         pivot_division = current_division
         
         if pivot == -1:  # unbounded LP problem
-            if not self.is_b_negative():
-                return False
-            
-            found_new_column = False
-            new_pivot_column = 0
-            for k in range(column_with_pivot + 1, len(self.tableau[0])):
-                if self.tableau[0, k] < 0:
-                    new_pivot_column = k
-                    found_new_column = True
-                    break
-            if found_new_column:
-                return self.find_pivot(new_pivot_column)
-            
-            """
-            if column_with_pivot >= self.variables:
-                return False
-            else:
-                found_new_column = False
-                new_pivot_column = 0
-                for k in range(column_with_pivot + 1, self.variables +1):
-                    if self.tableau[0, k] < 0:
-                        new_pivot_column = k
-                        found_new_column = True
-                        break
-                if found_new_column:
-                    return self.find_pivot(new_pivot_column)
-                return False 
-            """
+            return False
             
         print(pivot)  # REMOVER
         return coordinates
@@ -106,7 +79,7 @@ class Tableau:
         
         find_zeros = np.vectorize(self.round_zeros)
         self.tableau = find_zeros(self.tableau)
-        print(self.tableau)
+        print(self.tableau)  # REMOVER
 
     def is_pivot_column(self, column):
         counter = 0
@@ -243,7 +216,7 @@ class Simplex:
         """
         2-Phase Simplex method used when b vector has at least one negative entry
 
-        Returns True if the original LP is feasible; False otherwise
+        Returns "not feasible" if the original LP is not feasible; runs simplex on auxiliary tableau otherwise
         """
         auxiliary_LP = deepcopy(self.tableau)
         for i in range(1, self.restrictions + 1):
@@ -268,7 +241,7 @@ class Simplex:
         
         tableau_auxiliar = tableau_auxiliar.canonize()
 
-        print("================================")
+        print("================================")  # REMOVER
         print(tableau_auxiliar.tableau)
         
         return tableau_auxiliar
@@ -276,7 +249,7 @@ class Simplex:
 
     def is_optimal(self, tableau):
         """
-        Returns wether the simplex has reached optimality (result = 'T') or not.
+        Returns wether the simplex has reached optimality (returns 'T') or not.
         In the second case, the value returned is the column index for the next pivot
         """
         
