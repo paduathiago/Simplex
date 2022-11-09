@@ -3,13 +3,14 @@ from copy import deepcopy
 
 
 class Tableau:
+
     def __init__(self):
         self.tableau = []
         self.restrictions = 0
         self.variables = 0
 
     def FPI(self, vector_c, matrix):
-        # Adicionar uma matriz identidade cujas dimensões são iguais ao número de restrições(linhas) da matriz A
+        # Inserts (number of restrictions x number of restrictions) identity matrix 
         A_rows = np.shape(matrix)[0]
         aux = np.identity(A_rows)
         for column in aux:
@@ -29,14 +30,18 @@ class Tableau:
         self.variables = variables
         return self
 
-    def build_auxiliary_LP(self, tableau):
-        auxiliary_tableau = tableau
-        auxiliary_tableau[0] = np.zeros_like(auxiliary_tableau[0])
-        identity = np.identity(np.shape(auxiliary_tableau)[0] - 1)
-        negative_entries = np.full(np.shape(auxiliary_tableau)[0] -1, 1)
+    def build_auxiliary_LP(Tableau):
+        auxiliary_LP = deepcopy(Tableau)
+        for i in range(1, auxiliary_LP.restrictions + 1):
+            if auxiliary_LP.tableau[i, -1] < 0:
+                auxiliary_LP.tableau[i] = np.negative(auxiliary_LP.tableau[i])
+        
+        auxiliary_LP.tableau[0] = np.zeros_like(auxiliary_LP.tableau[0])
+        identity = np.identity(np.shape(auxiliary_LP.tableau)[0] - 1)
+        negative_entries = np.full(np.shape(auxiliary_LP.tableau)[0] -1, 1)
         new_matrix = np.insert(identity, 0, negative_entries, axis=0)
-        self.tableau = np.insert(auxiliary_tableau, [-1], new_matrix, axis=1)
-        return self
+        auxiliary_LP.tableau = np.insert(auxiliary_LP.tableau, [-1], new_matrix, axis=1)
+        return auxiliary_LP
 
     def find_pivot(self, column_with_pivot):
         """
@@ -218,12 +223,7 @@ class Simplex:
 
         Returns "not feasible" if the original LP is not feasible; runs simplex on auxiliary tableau otherwise
         """
-        auxiliary_LP = deepcopy(self.tableau)
-        for i in range(1, self.restrictions + 1):
-            if auxiliary_LP.tableau[i, -1] < 0:
-                auxiliary_LP.tableau[i] = np.negative(auxiliary_LP.tableau[i])
-
-        auxiliary_LP = auxiliary_LP.build_auxiliary_LP(auxiliary_LP.tableau)
+        auxiliary_LP = self.tableau.build_auxiliary_LP()
         auxiliary_LP.tableau = auxiliary_LP.canonize_auxiliary_LP()
         
         optimal_value = self.run_simplex(auxiliary_LP, is_auxiliary_LP=True)
@@ -246,7 +246,6 @@ class Simplex:
         
         return tableau_auxiliar
         
-
     def is_optimal(self, tableau):
         """
         Returns wether the simplex has reached optimality (returns 'T') or not.
