@@ -108,6 +108,27 @@ class Tableau:
         self.tableau = find_zeros(self.tableau)
         print(self.tableau)
 
+    def is_pivot_column(self, column):
+        counter = 0
+        pivot_line = None
+        for i, entry in enumerate(column):
+            if not (entry == 0.0 or entry == 1.0):
+                return False, None
+            elif entry == 1.0:
+                counter += 1
+                pivot_line = i
+                if counter > 1:
+                    return False, None
+        return True, pivot_line
+    
+    def canonize(self):
+        for j in range(len(self.tableau[0] -1)):
+            print(self.tableau[1:, j])
+            is_pivot, pivot_line = self.is_pivot_column(self.tableau[1:, j])
+            if is_pivot:
+                self.tableau[0] += np.multiply((-1 * self.tableau[0, j]), self.tableau[pivot_line + 1])
+        return self
+
     def canonize_auxiliary_LP(self):
         for row in range(1, np.shape(self.tableau)[0]):
             self.tableau[0] -= self.tableau[row]
@@ -235,7 +256,22 @@ class Simplex:
         optimal_value = self.run_simplex(auxiliary_LP, is_auxiliary_LP=True)
         if optimal_value < 0:
             return "not feasible"
-        #TODO: montar novo tableau da classe simplex
+    
+        self.tableau = self.build_tableau_after_auxiliary(self.tableau, auxiliary_LP)
+        return self.run_simplex(self.tableau)
+    
+    def build_tableau_after_auxiliary(self, tableau_original, tableau_auxiliar):
+        tableau_auxiliar.tableau = np.delete(tableau_auxiliar.tableau, np.s_[len(tableau_original.tableau[0]) - 1 : -1], axis=1)
+        print(np.shape(tableau_auxiliar.tableau[0]))
+        print(np.shape(tableau_original.tableau[1]))
+        tableau_auxiliar.tableau[0] = tableau_original.tableau[0]
+        
+        tableau_auxiliar = tableau_auxiliar.canonize()
+
+        print("================================")
+        print(tableau_auxiliar.tableau)
+        
+        return tableau_auxiliar
         
 
     def is_optimal(self, tableau):
