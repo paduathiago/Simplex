@@ -24,7 +24,6 @@ class Tableau:
 
     def build_tableau(self, matrix_A, vector_c, restrictions, variables):
         tableau = np.insert(vector_c, 0, -1 * matrix_A, axis=0)
-        print(tableau)  # REMOVER
         self.tableau = tableau
         self.restrictions = restrictions
         self.variables = variables
@@ -68,7 +67,6 @@ class Tableau:
         if pivot == -1:  # unbounded LP problem
             return False
             
-        print(pivot)  # REMOVER
         return coordinates
     
     def round_zeros(self, value):
@@ -84,7 +82,6 @@ class Tableau:
         
         find_zeros = np.vectorize(self.round_zeros)
         self.tableau = find_zeros(self.tableau)
-        print(self.tableau)  # REMOVER
 
     def is_pivot_column(self, column):
         counter = 0
@@ -101,7 +98,6 @@ class Tableau:
     
     def canonize(self):
         for j in range(len(self.tableau[0] -1)):
-            print(self.tableau[1:, j])
             is_pivot, pivot_line = self.is_pivot_column(self.tableau[1:, j])
             if is_pivot:
                 self.tableau[0] += np.multiply((-1 * self.tableau[0, j]), self.tableau[pivot_line + 1])
@@ -151,7 +147,6 @@ class Simplex:
             for item in self.find_possible_solution(tableau):
                 print(f'{item:.7f}', end=" ")
             print()
-            # TODO: print certificate
         elif LP_type == 'unbounded':
             print('ilimitada')
             for item in self.find_possible_solution(tableau):
@@ -175,7 +170,6 @@ class Simplex:
             current_line = []
 
         restrictions_matrix = np.array(restrictions_matrix).reshape(self.restrictions, self.variables + 1)
-        print(restrictions_matrix)  # REMOVER
 
         return vector_c, restrictions_matrix
     
@@ -191,7 +185,6 @@ class Simplex:
 
                 if not is_feasible:
                     return False
-        
         return True
     
     def run_simplex(self, Tableau, is_auxiliary_LP=False):
@@ -235,15 +228,9 @@ class Simplex:
     
     def build_tableau_after_auxiliary(self, tableau_original, tableau_auxiliar):
         tableau_auxiliar.tableau = np.delete(tableau_auxiliar.tableau, np.s_[len(tableau_original.tableau[0]) - 1 : -1], axis=1)
-        print(np.shape(tableau_auxiliar.tableau[0]))
-        print(np.shape(tableau_original.tableau[1]))
         tableau_auxiliar.tableau[0] = tableau_original.tableau[0]
         
         tableau_auxiliar = tableau_auxiliar.canonize()
-
-        print("================================")  # REMOVER
-        print(tableau_auxiliar.tableau)
-        
         return tableau_auxiliar
         
     def is_optimal(self, tableau):
@@ -251,8 +238,6 @@ class Simplex:
         Returns wether the simplex has reached optimality (returns 'T') or not.
         In the second case, the value returned is the column index for the next pivot
         """
-        
-        # print(self.tableau[0,:-1])  # REVISAR : esse range depende da utilização ou não do VERO na resolução do problema
         for column_index, element in enumerate(tableau[0, :-1]):
             if element < 0:
                 return column_index
