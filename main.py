@@ -27,6 +27,7 @@ class Tableau:
         self.tableau = tableau
         self.restrictions = restrictions
         self.variables = variables
+        self.VERO = np.vstack([np.zeros(restrictions), np.identity(restrictions)])
         return self
 
     def build_auxiliary_LP(Tableau):
@@ -40,6 +41,7 @@ class Tableau:
         negative_entries = np.full(np.shape(auxiliary_LP.tableau)[0] -1, 1)
         new_matrix = np.insert(identity, 0, negative_entries, axis=0)
         auxiliary_LP.tableau = np.insert(auxiliary_LP.tableau, [-1], new_matrix, axis=1)
+        #auxiliary_LP.VERO = np.vstack([np.zeros(Tableau.restrictions), np.identity(Tableau.restrictions)])
         return auxiliary_LP
 
     def find_pivot(self, column_with_pivot):
@@ -75,13 +77,18 @@ class Tableau:
         return value
 
     def pivot_column(self, coordinates):
-        self.tableau[coordinates[0]] /=  self.tableau[coordinates[0], coordinates[1]]
+        self.VERO[coordinates[0]] /= self.tableau[coordinates[0], coordinates[1]]
+        self.tableau[coordinates[0]] /= self.tableau[coordinates[0], coordinates[1]]
+        
         for i in range(self.restrictions + 1):
             if i != coordinates[0]:
+                self.VERO[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.VERO[coordinates[0]])
                 self.tableau[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.tableau[coordinates[0]])
+                
         
         find_zeros = np.vectorize(self.round_zeros)
         self.tableau = find_zeros(self.tableau)
+        self.VERO = find_zeros(self.VERO)
 
     def is_pivot_column(self, column):
         counter = 0
@@ -126,10 +133,10 @@ class Simplex:
         self.tableau = self.tableau.build_tableau(FPI_A, FPI_c, self.restrictions, self.variables)
         if self.tableau.is_b_negative():
             simplex_result = self.run_two_phase_simplex()
-            self.print_result(self.tableau.tableau, simplex_result)
+            self.print_result(self.tableau, simplex_result)
         else:
             simplex_result = self.run_simplex(self.tableau)
-            self.print_result(self.tableau.tableau, simplex_result)
+            self.print_result(self.tableau, simplex_result)
 
     def find_possible_solution(self, tableau):
         possible_solution = np.zeros(self.variables)
@@ -140,20 +147,27 @@ class Simplex:
                         possible_solution[j] = tableau[i, -1]
         return possible_solution
     
-    def print_result(self, tableau, LP_type):    
+    def print_result(self, Tableau, LP_type):    
         if LP_type == 'optimal':
             print('otima')
-            print(f'{tableau[0, -1]:.7f}')
-            for item in self.find_possible_solution(tableau):
+            print(f'{Tableau.tableau[0, -1]:.7f}')
+            for item in self.find_possible_solution(Tableau.tableau):
                 print(f'{item:.7f}', end=" ")
+            print()
+            for element in Tableau.VERO[0]:
+                print(f'{element:.7f}', end=" ")
             print()
         elif LP_type == 'unbounded':
             print('ilimitada')
-            for item in self.find_possible_solution(tableau):
+            for item in self.find_possible_solution(Tableau.tableau):
                 print(f'{item:.7f}', end=" ")
             print()
         elif LP_type == "not feasible":
             print('inviavel')
+            for element in Tableau.VERO[0]:
+                print(f'{element:.7f}', end=" ")
+            print()
+            
             
     def process_input(self):
         self.restrictions, self.variables = [int(x) for x in input().split()]
@@ -231,6 +245,8 @@ class Simplex:
         tableau_auxiliar.tableau[0] = tableau_original.tableau[0]
         
         tableau_auxiliar = tableau_auxiliar.canonize()
+        #tableau_auxiliar.VERO = np.vstack([np.zeros(tableau_original.restrictions), np.identity(tableau_original.restrictions)])
+
         return tableau_auxiliar
         
     def is_optimal(self, tableau):
