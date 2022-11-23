@@ -84,13 +84,15 @@ class Tableau:
             if i != coordinates[0]:
                 self.VERO[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.VERO[coordinates[0]])
                 self.tableau[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.tableau[coordinates[0]])
-                
-                
+                 
         find_zeros = np.vectorize(self.round_zeros)
         self.tableau = find_zeros(self.tableau)
         self.VERO = find_zeros(self.VERO)
 
     def is_pivot_column(self, column):
+        """
+        Returns if column has a pivot
+        """
         counter = 0
         pivot_line = None
         for i, entry in enumerate(column):
@@ -171,8 +173,7 @@ class Simplex:
             for element in Tableau.VERO[0]:
                 print(f'{element:.7f}', end=" ")
             print()
-            
-            
+                   
     def process_input(self):
         self.restrictions, self.variables = [int(x) for x in input().split()]
 
