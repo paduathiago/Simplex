@@ -239,6 +239,7 @@ class Simplex:
         
         optimal_value = self.run_simplex(auxiliary_LP, is_auxiliary_LP=True)
         if optimal_value < 0:
+            self.tableau.VERO = auxiliary_LP.VERO
             return "not feasible"
     
         self.tableau = self.build_tableau_after_auxiliary(self.tableau, auxiliary_LP)
@@ -249,7 +250,6 @@ class Simplex:
         tableau_auxiliar.tableau[0] = tableau_original.tableau[0]
 
         tableau_auxiliar = tableau_auxiliar.canonize()
-        #tableau_auxiliar.VERO[0] = np.zeros(tableau_original.restrictions)
         return tableau_auxiliar
         
     def is_optimal(self, tableau):
