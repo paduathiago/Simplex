@@ -35,13 +35,13 @@ class Tableau:
         for i in range(1, auxiliary_LP.restrictions + 1):
             if auxiliary_LP.tableau[i, -1] < 0:
                 auxiliary_LP.tableau[i] = np.negative(auxiliary_LP.tableau[i])
+                auxiliary_LP.VERO[i] = np.negative(auxiliary_LP.VERO[i])
         
         auxiliary_LP.tableau[0] = np.zeros_like(auxiliary_LP.tableau[0])
         identity = np.identity(np.shape(auxiliary_LP.tableau)[0] - 1)
         negative_entries = np.full(np.shape(auxiliary_LP.tableau)[0] -1, 1)
         new_matrix = np.insert(identity, 0, negative_entries, axis=0)
         auxiliary_LP.tableau = np.insert(auxiliary_LP.tableau, [-1], new_matrix, axis=1)
-        #auxiliary_LP.VERO = np.vstack([np.zeros(Tableau.restrictions), np.identity(Tableau.restrictions)])
         return auxiliary_LP
 
     def find_pivot(self, column_with_pivot):
@@ -85,7 +85,7 @@ class Tableau:
                 self.VERO[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.VERO[coordinates[0]])
                 self.tableau[i] += np.multiply((-1 * self.tableau[i, coordinates[1]]), self.tableau[coordinates[0]])
                 
-        
+                
         find_zeros = np.vectorize(self.round_zeros)
         self.tableau = find_zeros(self.tableau)
         self.VERO = find_zeros(self.VERO)
@@ -104,14 +104,18 @@ class Tableau:
         return True, pivot_line
     
     def canonize(self):
+        self.VERO[0] = np.zeros(self.restrictions)
         for j in range(len(self.tableau[0] -1)):
             is_pivot, pivot_line = self.is_pivot_column(self.tableau[1:, j])
             if is_pivot:
+                self.VERO[0] += np.multiply((-1 * self.tableau[0, j]), self.VERO[pivot_line + 1])
                 self.tableau[0] += np.multiply((-1 * self.tableau[0, j]), self.tableau[pivot_line + 1])
+                
         return self
 
     def canonize_auxiliary_LP(self):
         for row in range(1, np.shape(self.tableau)[0]):
+            self.VERO[0] -= self.VERO[row]
             self.tableau[0] -= self.tableau[row]
         return self.tableau
 
@@ -243,10 +247,9 @@ class Simplex:
     def build_tableau_after_auxiliary(self, tableau_original, tableau_auxiliar):
         tableau_auxiliar.tableau = np.delete(tableau_auxiliar.tableau, np.s_[len(tableau_original.tableau[0]) - 1 : -1], axis=1)
         tableau_auxiliar.tableau[0] = tableau_original.tableau[0]
-        
-        tableau_auxiliar = tableau_auxiliar.canonize()
-        #tableau_auxiliar.VERO = np.vstack([np.zeros(tableau_original.restrictions), np.identity(tableau_original.restrictions)])
 
+        tableau_auxiliar = tableau_auxiliar.canonize()
+        #tableau_auxiliar.VERO[0] = np.zeros(tableau_original.restrictions)
         return tableau_auxiliar
         
     def is_optimal(self, tableau):
